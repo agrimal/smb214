@@ -19,25 +19,25 @@ parameters:
   flavor-bastion:
     type: string
     description: Instance Bastion flavor
-    default: m1.tiny
+    default: z1.nano
     constraints:
       - custom_constraint: nova.flavor
   flavor-rvprx:
     type: string
     description: Instance RVPRX flavor
-    default: m1.small
+    default: z1.micro
     constraints:
       - custom_constraint: nova.flavor
   flavor-db:
     type: string
     description: Instance DB flavor
-    default: m1.small
+    default: z1.small
     constraints:
       - custom_constraint: nova.flavor
   flavor-www:
     type: string
     description: Instance WWW flavor
-    default: m1.medium
+    default: z1.medium
     constraints:
       - custom_constraint: nova.flavor
   public-net:
