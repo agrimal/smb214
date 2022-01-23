@@ -43,8 +43,7 @@ parameters:
   public-net:
     type: string
     default: net-ext
-    description: >
-            ID or name of public network for which floating IP addresses will be allocated 
+    description: Le réseau externe
 
 resources:
 
@@ -56,7 +55,7 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       name: private-subnet-FE-DEFAULT
-      dns_nameservers: [ 9.9.9.9 ]
+      dns_nameservers: [ 8.8.8.8 ]
       enable_dhcp: true
       cidr: 192.168.111.0/24
       gateway_ip: 192.168.111.1
@@ -169,7 +168,7 @@ resources:
     properties:
       name: db
       metadata:
-        group: backend,db
+        groups: backend,db
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-db }
@@ -200,7 +199,7 @@ resources:
     properties:
       name: www-01
       metadata:
-        group: backend,www
+        groups: backend,www
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
@@ -232,7 +231,7 @@ resources:
     properties:
       name: www-02
       metadata:
-        group: backend,www
+        groups: backend,www
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
