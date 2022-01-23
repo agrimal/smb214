@@ -1,0 +1,281 @@
+heat_template_version: 2021-04-16
+
+description: Stack Réseau et instances
+
+parameters:
+  key-name:
+    type: string
+    label: SSH key pair
+    description: SSH key to be used
+    default: ma_clef
+    constraints:
+      - custom_constraint: nova.keypair
+  image:
+    type: string
+    description: OS Image
+    default: debian11
+    constraints:
+      - custom_constraint: glance.image
+  flavor-bastion:
+    type: string
+    description: Instance Bastion flavor
+    default: z1.nano
+    constraints:
+      - custom_constraint: nova.flavor
+  flavor-rvprx:
+    type: string
+    description: Instance RVPRX flavor
+    default: z1.micro
+    constraints:
+      - custom_constraint: nova.flavor
+  flavor-db:
+    type: string
+    description: Instance DB flavor
+    default: z1.small
+    constraints:
+      - custom_constraint: nova.flavor
+  flavor-www:
+    type: string
+    description: Instance WWW flavor
+    default: z1.medium
+    constraints:
+      - custom_constraint: nova.flavor
+  public-net:
+    type: string
+    default: net-ext
+    description: >
+            ID or name of public network for which floating IP addresses will be allocated 
+
+resources:
+
+  private-net-FE:
+    type: OS::Neutron::Net
+    properties:
+      name: private-net-FE
+  private-subnet-FE-DEFAULT:
+    type: OS::Neutron::Subnet
+    properties:
+      name: private-subnet-FE-DEFAULT
+      dns_nameservers: [ 9.9.9.9 ]
+      enable_dhcp: true
+      cidr: 192.168.111.0/24
+      gateway_ip: 192.168.111.1
+      network: { get_resource: private-net-FE }
+
+  private-net-BE-WWW:
+    type: OS::Neutron::Net
+    properties:
+      name: private-net-BE-WWW
+  private-subnet-BE-WWW:
+    type: OS::Neutron::Subnet
+    properties:
+      name: private-subnet-BE-WWW
+      dns_nameservers: [ ]
+      network: { get_resource: private-net-BE-WWW }
+      cidr: 192.168.112.0/24
+      gateway_ip: null
+  private-net-BE-DB:
+    type: OS::Neutron::Net
+    properties:
+      name: private-net-BE-DB
+  private-subnet-BE-DB:
+    type: OS::Neutron::Subnet
+    properties:
+      name: private-subnet-BE-DB
+      dns_nameservers: [ ]
+      network: { get_resource: private-net-BE-DB }
+      cidr: 192.168.113.0/24
+      gateway_ip: null
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      name: router
+      external_gateway_info:
+        network: { get_param: public-net }
+  router-interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: private-subnet-FE-DEFAULT }
+
+  sec-group-bastion:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-bastion
+      description: Groupe de secu du Bastion
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+
+  bastion-port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-FE }
+      security_groups: [ { get_resource: sec-group-bastion } ]
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
+  bastion-floating-ip-SSH:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public-net }
+      port_id: { get_resource: bastion-port }
+  bastion:
+    type: OS::Nova::Server
+    properties:
+      name: bastion
+      metadata:
+        group: bastion
+      key_name: { get_param: key-name }
+      image: { get_param: image }
+      flavor: { get_param: flavor-bastion }
+      networks:
+        - port: { get_resource: bastion-port }
+
+  sec-group-rvprx:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-rvprx
+      description: Groupe de secu du Bastion
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 443
+          port_range_max: 443
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+
+  rvprx-port-EXT:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-FE }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
+  rvprx-floating-ip-WWW:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public-net }
+      port_id: { get_resource: rvprx-port-EXT }
+  rvprx-port-WWW:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-BE-WWW }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-BE-WWW }
+  rvprx:
+    type: OS::Nova::Server
+    properties:
+      name: rvprx
+      metadata:
+        group: backend,rvprx
+      key_name: { get_param: key-name }
+      image: { get_param: image }
+      flavor: { get_param: flavor-rvprx }
+      networks:
+        - port: { get_resource: rvprx-port-EXT }
+        - port: { get_resource: rvprx-port-WWW }
+
+  db-port-DEFAULT:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-FE }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
+  db-port-DB:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-BE-DB }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-BE-DB }
+  db:
+    type: OS::Nova::Server
+    properties:
+      name: db
+      metadata:
+        group: backend,db
+      key_name: { get_param: key-name }
+      image: { get_param: image }
+      flavor: { get_param: flavor-db }
+      networks:
+        - port: { get_resource: db-port-DEFAULT }
+        - port: { get_resource: db-port-DB }
+
+  www-01-port-DEFAULT:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-FE }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
+  www-01-port-WWW:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-BE-WWW }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-BE-WWW }
+  www-01-port-DB:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-BE-DB }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-BE-DB }
+  www-01:
+    type: OS::Nova::Server
+    properties:
+      name: www-01
+      metadata:
+        group: backend,www
+      key_name: { get_param: key-name }
+      image: { get_param: image }
+      flavor: { get_param: flavor-www }
+      networks:
+        - port: { get_resource: www-01-port-DEFAULT }
+        - port: { get_resource: www-01-port-WWW }
+        - port: { get_resource: www-01-port-DB }
+
+  www-02-port-DEFAULT:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-FE }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
+  www-02-port-WWW:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-BE-WWW }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-BE-WWW }
+  www-02-port-DB:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: private-net-BE-DB }
+      fixed_ips:
+        - subnet_id: { get_resource: private-subnet-BE-DB }
+  www-02:
+    type: OS::Nova::Server
+    properties:
+      name: www-02
+      metadata:
+        group: backend,www
+      key_name: { get_param: key-name }
+      image: { get_param: image }
+      flavor: { get_param: flavor-www }
+      networks:
+        - port: { get_resource: www-02-port-DEFAULT }
+        - port: { get_resource: www-02-port-WWW }
+        - port: { get_resource: www-02-port-DB }
+
+outputs:
+  bastion-ip-ext:
+    description: Adresse IP publique du Bastion
+    value: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
+  rvprx-ip-ext:
+    description: Adresse IP publique du Reverse-Proxy
+    value: { get_attr: [rvprx-floating-ip-WWW, floating_ip_address] }
