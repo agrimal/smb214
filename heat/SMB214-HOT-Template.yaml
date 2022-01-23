@@ -241,11 +241,10 @@ resources:
         - port: { get_resource: www-02-port-WWW }
         - port: { get_resource: www-02-port-DB }
 
-# TODO : Revoir les sorties pour avoir les différentes IP des noeuds
 outputs:
   bastion-ip-ext:
-    description: Public IP address of the instance "bastion"
+    description: Adresse IP publique du Bastion
     value: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
-  bastion-ip-int:
-    description: Private IP address of the instance "bastion"
-    value: { get_attr: [bastion, first_address] }
+  rvprx-ip-ext:
+    description: Adresse IP publique du Reverse-Proxy
+    value: { get_attr: [rvprx-floating-ip-WWW, floating_ip_address] }
