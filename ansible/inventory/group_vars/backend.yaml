@@ -1,0 +1,3 @@
+---
+
+ansible_ssh_common_args: '-o ProxyJump=debian@10.123.124.238 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
