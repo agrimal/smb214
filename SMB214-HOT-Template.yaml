@@ -114,6 +114,8 @@ resources:
     type: OS::Nova::Server
     properties:
       name: bastion
+      metadata:
+        group: bastion
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-bastion }
@@ -137,11 +139,12 @@ resources:
       network_id: { get_resource: private-net-BE-WWW }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-WWW }
-        #- ip_address: 192.168.112.80
   rvprx:
     type: OS::Nova::Server
     properties:
       name: rvprx
+      metadata:
+        group: backend,rvprx
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-rvprx }
@@ -165,6 +168,8 @@ resources:
     type: OS::Nova::Server
     properties:
       name: db
+      metadata:
+        group: backend,db
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-db }
@@ -194,6 +199,8 @@ resources:
     type: OS::Nova::Server
     properties:
       name: www-01
+      metadata:
+        group: backend,www
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
@@ -224,6 +231,8 @@ resources:
     type: OS::Nova::Server
     properties:
       name: www-02
+      metadata:
+        group: backend,www
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
