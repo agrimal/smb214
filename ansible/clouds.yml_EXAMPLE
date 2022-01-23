@@ -1,0 +1,10 @@
+clouds:
+  CLOUD_NAME:
+    auth:
+      auth_url: https://FQDN_OR_IP:5000/v3
+      project_name: PROJECT_NAME
+      username: user
+      password: password
+      user_domain_name: Default
+      project_domain_name: Default
+    region_name: RegionOne
