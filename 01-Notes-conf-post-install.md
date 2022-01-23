@@ -78,7 +78,7 @@ openstack flavor list
 ## Import d'une image Debian
 
 ```
-wget -q https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.qcow2 -O /tmp/
+wget -q https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.qcow2 -O /tmp/debian-11.qcow2
 openstack image create \
   --container-format bare \
   --disk-format qcow2 \
@@ -89,7 +89,7 @@ openstack image create \
   --property os_admin_user=debian \
   --property os_version='11' \
   --public \
-  --file /tmp/debian-11-generic-amd64.qcow2 \
+  --file /tmp/debian-11.qcow2 \
   debian11
 
 openstack image list
