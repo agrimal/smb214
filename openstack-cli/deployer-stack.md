@@ -12,7 +12,7 @@ openstack stack list
 
 openstack stack create \
   -t https://g.gg42.eu/OpenStack/SMB214/raw/branch/master/heat/SMB214-HOT-Template.yaml \
-  --parameter key-name=alban-vm-d11-fixe-2021-01-08 \
+  --parameter key-name=ma_clef \
   --parameter image=debian11 \
   --parameter flavor-bastion=z1.micro \
   --parameter flavor-rvprx=z1.small \
