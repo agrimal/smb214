@@ -1,4 +1,9 @@
-Aller dans le conteneur « utility »
+Déployer une stack en CLI
+=========================
+
+Plusieurs solutions :
++ Depuis le conteneur « utility »
++ Depuis son PC d'admin avec les outils CLI OpenStack
 
 source openrc
 
