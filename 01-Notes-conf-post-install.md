@@ -17,6 +17,16 @@ openstack user create --project smb214 --password-prompt --ignore-change-passwor
 openstack user list
 ```
 
+## Création et import d'une clé SSH pour l'utilisateur
+
+```
+# Création
+ssh-keygen -t ed25519 -f bob-id_ed25519
+
+# Import
+openstack keypair create --public-key bob-id_ed25519.pub --type ssh ma_clef
+```
+
 ## Ajout du role « membre » à bob dans le projet
 
 ```
@@ -52,4 +62,52 @@ openstack subnet list
 openstack subnet list --network net-ext
 ```
 
+## Création des saveurs
 
+```
+openstack flavor create --public z1.nano   --id 1 --ram 512   --disk 4  --vcpus 1
+openstack flavor create --public z1.micro  --id 2 --ram 1024  --disk 10 --vcpus 1
+openstack flavor create --public z1.small  --id 3 --ram 2048  --disk 20 --vcpus 1
+openstack flavor create --public z1.medium --id 4 --ram 4096  --disk 40 --vcpus 2
+openstack flavor create --public z1.large  --id 5 --ram 8192  --disk 60 --vcpus 2
+openstack flavor create --public z1.xlarge --id 6 --ram 16384 --disk 80 --vcpus 4
+
+openstack flavor list
+```
+
+## Import d'une image Debian
+
+```
+wget -q https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.qcow2 -O /tmp/
+openstack image create \
+  --container-format bare \
+  --disk-format qcow2 \
+  --property hw_disk_bus=scsi \
+  --property hw_scsi_model=virtio-scsi \
+  --property os_type=linux \
+  --property os_distro=debian \
+  --property os_admin_user=debian \
+  --property os_version='11' \
+  --public \
+  --file /tmp/debian-11-generic-amd64.qcow2 \
+  debian11
+
+openstack image list
+```
+
+## Création de la stack via un template Heat (HOT)
+
+```
+openstack stack create \
+  -t https://g.gg42.eu/OpenStack/SMB214/raw/branch/master/heat/SMB214-HOT-Template.yaml \
+  --parameter key-name=ma_clef \
+  --parameter image=debian11 \
+  --parameter flavor-bastion=z1.micro \
+  --parameter flavor-rvprx=z1.small \
+  --parameter flavor-db=z1.small \
+  --parameter flavor-www=z1.medium \
+  --parameter public-net=net-ext \
+  SMB214
+
+openstack stack list
+```
