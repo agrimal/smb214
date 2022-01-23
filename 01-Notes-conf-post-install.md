@@ -62,6 +62,36 @@ openstack subnet list
 openstack subnet list --network net-ext
 ```
 
+## Création des règles de sécurité
+
+Si on désire les faire à la main, dans le projet elle seront dans le template Heat
+
+```
+# Règles pour le bastion
+openstack security group create bastion
+openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 22 bastion
+openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0               bastion
+
+# Règles pour le Reverse-Proxy
+openstack security group create rvprx
+openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 80  rvprx
+openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 443 rvprx
+openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0                rvprx
+
+# Règles pour les serveurs de backend (pour SSH)
+openstack security group create backend
+openstack security group rule create --proto tcp  --remote-group bastion --dst-port 22 backend
+openstack security group rule create --proto icmp --remote-group bastion backend
+
+openstack security group create www
+openstack security group rule create --proto tcp --remote-group rvprx --dst-port 80 www
+openstack security group rule create --proto icmp --remote-group rvprx www
+
+openstack security group create db
+openstack security group rule create --proto tcp --remote-group www --dst-port 3306 db
+
+```
+
 ## Création des saveurs
 
 ```
