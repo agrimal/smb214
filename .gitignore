@@ -2,3 +2,4 @@ openstack.rc
 admin.openstack-rc.sh
 bob-id_ed25519
 bob.openstack-rc.sh
+ansible/clouds.yaml
