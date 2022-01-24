@@ -317,6 +317,7 @@ resources:
         ssh_access: be
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
+        external_fqdn: w1.smb214.gg42.eu
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
@@ -358,6 +359,7 @@ resources:
         ssh_access: be
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
+        external_fqdn: w2.smb214.gg42.eu
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
