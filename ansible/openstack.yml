@@ -1,13 +1,13 @@
 plugin: openstack.cloud.openstack
 expand_hostvars: yes
-fail_on_errors: yes
+fail_on_errors: no
 cache: yes
 cache_plugin: ansible.builtin.jsonfile
 cache_connection: /tmp/openstack_inventory
 cache_prefix: openstack
-cache_timeout: 120
-clouds_yaml_path: clouds.yml
+cache_timeout: 300
+clouds_yaml_path: [clouds.yaml]
 keyed_groups:
-- key: tags.Name
-  prefix: tag_Name_
-  separator: ""
+- key: groups
+  prefix: group_
+  separator: ","
