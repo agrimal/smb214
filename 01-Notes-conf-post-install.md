@@ -1,10 +1,14 @@
 Notes de la configuration à faire après l'installation d'OpenStack
 ==================================================================
 
+================================================================================
+# Actions administrateur (compte admin)
+================================================================================
+
 ## Création d'un projet
 
 ```
-openstack project create --domain Default smb214
+openstack project create --domain default smb214
 openstack project list
 ```
 
@@ -17,28 +21,18 @@ openstack user create --project smb214 --password-prompt --ignore-change-passwor
 openstack user list
 ```
 
-## Création et import d'une clé SSH pour l'utilisateur
-
-```
-# Création
-ssh-keygen -t ed25519 -f bob-id_ed25519
-
-# Import
-openstack keypair create --public-key bob-id_ed25519.pub --type ssh ma_clef
-```
-
 ## Ajout du role « membre » à bob dans le projet
 
-```
+```bash
 openstack role add --user bob --project smb214 member
 openstack role assignment list --names --user bob
-# ou
-openstack role assignment list --names --user bob --project smb214
+# ou `openstack role assignment list --names --user bob --project smb214`
 ```
 
 ## Création du réseau externe et de son sous-réseau
 
-```
+```bash
+# réseau
 openstack network create \
   --share \
   --external \
@@ -48,48 +42,18 @@ openstack network create \
 
 openstack network list
 
-# sous réseau
+# sous-réseau
 openstack subnet create \
   --network net-ext \
   --allocation-pool start=10.123.124.2,end=10.123.124.254 \
-  --dns-nameserver 9.9.9.9 \
+  --dns-nameserver 8.8.8.8 \
   --gateway 10.123.124.1 \
   --subnet-range 10.123.124.0/24 \
   subnet-ext
 
+# Liste des sous-réseaux
 openstack subnet list
-# ou
-openstack subnet list --network net-ext
-```
-
-## Création des règles de sécurité
-
-Si on désire les faire à la main, dans le projet elle seront dans le template Heat
-
-```
-# Règles pour le bastion
-openstack security group create bastion
-openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 22 bastion
-openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0               bastion
-
-# Règles pour le Reverse-Proxy
-openstack security group create rvprx
-openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 80  rvprx
-openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 443 rvprx
-openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0                rvprx
-
-# Règles pour les serveurs de backend (pour SSH)
-openstack security group create backend
-openstack security group rule create --proto tcp  --remote-group bastion --dst-port 22 backend
-openstack security group rule create --proto icmp --remote-group bastion backend
-
-openstack security group create www
-openstack security group rule create --proto tcp --remote-group rvprx --dst-port 80 www
-openstack security group rule create --proto icmp --remote-group rvprx www
-
-openstack security group create db
-openstack security group rule create --proto tcp --remote-group www --dst-port 3306 db
-
+# ou `openstack subnet list --network net-ext`
 ```
 
 ## Création des saveurs
@@ -123,6 +87,50 @@ openstack image create \
   debian11
 
 openstack image list
+```
+
+================================================================================
+# Actions utilisateur (compte bob)
+================================================================================
+
+## Création et import d'une clé SSH pour l'utilisateur
+
+```
+# Création
+ssh-keygen -t ed25519 -f bob-id_ed25519
+
+# Import
+openstack keypair create --public-key bob-id_ed25519.pub --type ssh ma_clef
+```
+
+## Création des règles de sécurité
+
+A faire uniquement si on ne veut pas les créer dans le template Heat
+
+```
+# Règles pour le bastion
+openstack security group create bastion
+openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 22 bastion
+openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0               bastion
+
+# Règles pour le Reverse-Proxy
+openstack security group create rvprx
+openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 80  rvprx
+openstack security group rule create --proto tcp  --remote-ip 0.0.0.0/0 --dst-port 443 rvprx
+openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0                rvprx
+
+# Règles pour les serveurs de backend (pour SSH)
+openstack security group create backend
+openstack security group rule create --proto tcp  --remote-group bastion --dst-port 22 backend
+openstack security group rule create --proto icmp --remote-group bastion backend
+
+openstack security group create www
+openstack security group rule create --proto tcp --remote-group rvprx --dst-port 80 www
+openstack security group rule create --proto icmp --remote-group rvprx www
+
+openstack security group create db
+openstack security group rule create --proto tcp --remote-group www --dst-port 3306 db
+
 ```
 
 ## Création de la stack via un template Heat (HOT)
