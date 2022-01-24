@@ -150,6 +150,7 @@ resources:
       name: bastion
       metadata:
         groups: bastion
+        ssh_access: fe
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-bastion }
@@ -208,6 +209,8 @@ resources:
       name: rvprx
       metadata:
         groups: backend,rvprx
+        ssh_access: be
+        bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-rvprx }
@@ -252,6 +255,8 @@ resources:
       name: db
       metadata:
         groups: backend,db
+        ssh_access: be
+        bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-db }
@@ -309,6 +314,8 @@ resources:
       name: www-01
       metadata:
         groups: backend,www
+        ssh_access: be
+        bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
@@ -347,6 +354,8 @@ resources:
       name: www-02
       metadata:
         groups: backend,www
+        ssh_access: be
+        bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
