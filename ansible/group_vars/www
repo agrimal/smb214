@@ -1,0 +1,7 @@
+---
+
+# Adresse IP de backend web
+be_address: "{{ openstack['addresses']['private-net-BE-WWW'][0]['addr'] }}"
+# IP pour se connecter à la BDD
+db_ip: "{{ openstack.metadata.db_ip }}"
+external_fqdn: "{{ openstack.metadata.external_fqdn }}"

@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+
+server {
+    listen 80;
+    server_name {{ hostvars[item].external_fqdn }};
+    access_log /var/log/nginx/{{ hostvars[item].external_fqdn }}_access.log;
+    error_log  /var/log/nginx/{{ hostvars[item].external_fqdn }}_error.log;
+    location / {
+        proxy_pass http://{{ hostvars[item].be_address }}:80;
+    }
+}
+

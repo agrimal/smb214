@@ -1,0 +1,8 @@
+---
+# tasks file for roles/all
+
+- name: Copie des clés SSH dans l'utilisateur par défaut
+  ansible.builtin.blockinfile:
+    path: /home/{{ ansible_user }}/.ssh/authorized_keys
+    marker: "<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+    block: "{{ ssh_pub_keys }}"

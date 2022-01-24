@@ -1,0 +1,26 @@
+---
+
+- name: Configuration générale
+  hosts: all
+  roles:
+    - all
+
+- name: Configuration du RVPRX
+  hosts: rvprx
+  roles:
+    - rvprx
+  become: yes
+
+- name: Configuration des serveurs Web
+  hosts: www-01,www-02
+  roles:
+    - www
+  become: yes
+
+- name: Configuration de la BDD
+  hosts: db
+  roles:
+    - db
+  become: yes
+
+

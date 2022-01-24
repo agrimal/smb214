@@ -1,0 +1,31 @@
+---
+# tasks file for roles/rvprx
+
+- name: Installation de Nginx
+  ansible.builtin.apt:
+    name: nginx
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Création des vhosts
+  ansible.builtin.template:
+    src: etc_nginx_sites-available_vhost.j2
+    dest: "/etc/nginx/sites-available/{{ hostvars[item].external_fqdn }}"
+  with_list: "{{ groups['www'] }}"
+  #with_items: [ "{{ groups['www'] }}" ]
+  register: reload_nginx
+
+- name: Activation des vhosts
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ hostvars[item].external_fqdn }}"
+    dest: "/etc/nginx/sites-enabled/{{ hostvars[item].external_fqdn }}"
+    state: link
+  with_list: "{{ groups['www'] }}"
+  register: reload_nginx
+
+- name: Rechargement de Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+  when: reload_nginx.changed
+
