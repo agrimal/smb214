@@ -316,6 +316,7 @@ resources:
         groups: backend,www
         ssh_access: be
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
+        db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
@@ -356,6 +357,7 @@ resources:
         groups: backend,www
         ssh_access: be
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
+        db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
