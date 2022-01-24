@@ -1,6 +1,6 @@
 heat_template_version: 2021-04-16
 
-description: Stack Réseau et instances
+description: Stack complète Bastion + RVPRX + Serveurs Web + BDD pour le Projet SMB214
 
 parameters:
   key-name:
@@ -86,6 +86,8 @@ resources:
       cidr: 192.168.113.0/24
       gateway_ip: null
 
+  # ROUTEUR
+
   router:
     type: OS::Neutron::Router
     properties:
@@ -98,10 +100,43 @@ resources:
       router_id: { get_resource: router }
       subnet_id: { get_resource: private-subnet-FE-DEFAULT }
 
+  # BACKEND
+
+  sec-group-backend:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-backend
+      description: Groupe des serveurs de Backend
+      rules:
+        - remote_group_id: { get_resource: sec-group-bastion }
+          remote_mode: remote_group_id
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_group_id: { get_resource: sec-group-bastion }
+          remote_mode: remote_group_id
+          protocol: icmp
+
+  # BASTION
+
+  sec-group-bastion:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-bastion
+      description: Groupe de secu du Bastion
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+
   bastion-port:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-FE }
+      security_groups: [ { get_resource: sec-group-bastion } ]
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
   bastion-floating-ip-SSH:
@@ -114,17 +149,44 @@ resources:
     properties:
       name: bastion
       metadata:
-        group: bastion
+        groups: bastion
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-bastion }
       networks:
         - port: { get_resource: bastion-port }
 
+  # RVPRX
+
+  sec-group-rvprx-EXT:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-rvprx-EXT
+      description: Groupe de secu du reverse proxy - EXT
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 443
+          port_range_max: 443
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+  sec-group-rvprx-WWW:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-rvprx-WWW
+      description: Groupe de secu du reverse proxy - WWW
+
   rvprx-port-EXT:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-FE }
+      security_groups:
+        - { get_resource: sec-group-rvprx-EXT }
+        - { get_resource: sec-group-backend }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
   rvprx-floating-ip-WWW:
@@ -136,6 +198,8 @@ resources:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-BE-WWW }
+      security_groups:
+        - { get_resource: sec-group-rvprx-WWW }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-WWW }
   rvprx:
@@ -143,7 +207,7 @@ resources:
     properties:
       name: rvprx
       metadata:
-        group: backend,rvprx
+        groups: backend,rvprx
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-rvprx }
@@ -151,16 +215,35 @@ resources:
         - port: { get_resource: rvprx-port-EXT }
         - port: { get_resource: rvprx-port-WWW }
 
+  sec-group-db:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-db
+      description: Groupe des serveurs de base de données
+      rules:
+        - remote_group_id: { get_resource: sec-group-www-BE-DB }
+          remote_mode: remote_group_id
+          protocol: tcp
+          port_range_min: 3306
+          port_range_max: 3306
+        - remote_group_id: { get_resource: sec-group-www-BE-DB }
+          remote_mode: remote_group_id
+          protocol: icmp
+
   db-port-DEFAULT:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-FE }
+      security_groups:
+        - { get_resource: sec-group-backend }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
   db-port-DB:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-BE-DB }
+      security_groups:
+        - { get_resource: sec-group-db }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-DB }
   db:
@@ -176,22 +259,48 @@ resources:
         - port: { get_resource: db-port-DEFAULT }
         - port: { get_resource: db-port-DB }
 
+  sec-group-www-BE-WWW:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-www-BE-WWW
+      description: Groupe des serveurs de Web - BE Web
+      rules:
+        - remote_group_id: { get_resource: sec-group-rvprx-WWW }
+          remote_mode: remote_group_id
+          protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+        - remote_group_id: { get_resource: sec-group-rvprx-WWW }
+          remote_mode: remote_group_id
+          protocol: icmp
+  sec-group-www-BE-DB:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: sec-group-www-BE-DB
+      description: Groupe des serveurs de Web - BE DB
+
   www-01-port-DEFAULT:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-FE }
+      security_groups:
+        - { get_resource: sec-group-backend }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
   www-01-port-WWW:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-BE-WWW }
+      security_groups:
+        - { get_resource: sec-group-www-BE-WWW }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-WWW }
   www-01-port-DB:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-BE-DB }
+      security_groups:
+        - { get_resource: sec-group-www-BE-DB }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-DB }
   www-01:
@@ -212,18 +321,24 @@ resources:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-FE }
+      security_groups:
+        - { get_resource: sec-group-backend }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-FE-DEFAULT }
   www-02-port-WWW:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-BE-WWW }
+      security_groups:
+        - { get_resource: sec-group-www-BE-WWW }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-WWW }
   www-02-port-DB:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: private-net-BE-DB }
+      security_groups:
+        - { get_resource: sec-group-www-BE-WWW }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-DB }
   www-02:
