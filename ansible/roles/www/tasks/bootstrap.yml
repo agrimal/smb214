@@ -1,0 +1,5 @@
+---
+- name: Création page Web pour le site
+  ansible.builtin.template:
+    src: var_www_html_index.html__bootstrap__.j2
+    dest: /var/www/html/index.html

@@ -1,2 +1,48 @@
 ---
-# defaults file for roles/www
+# Paquets à installer
+packages:
+  bootstrap:
+  - apache2
+  wordpress:
+  - apache2
+  - php-fpm
+  - php-json
+  - php-mysql
+  - php-curl
+  - php-dompdf
+  - php-imagick
+  - php-mbstring
+  - php-xml
+  - php-zip
+  - php-gd
+  - php-intl
+
+# Modules Apache2 à activer
+apache2_modules_to_enable:
+  bootstrap: []
+  wordpress:
+  - proxy_fcgi
+  - setenvif
+
+# Conf Apache2 à activer
+apache2_confs_to_enable:
+  bootstrap: []
+  wordpress:
+  - php7.4-fpm
+
+# URL de l'archive Wordpress à utiliser
+wordpress_tar_url: https://wordpress.org/latest.tar.gz
+
+# Nom de la base MariaDB
+wordpress_db_name: wordpress
+# Utilisateur pour se connecter à la BDD
+wordpress_db_user: wordpress
+# MDP pour se connecter à la BDD
+wordpress_db_password: wordpress
+
+# IP pour se connecter à la BDD
+db_ip: "{{ openstack.metadata.db_ip }}"
+# FQDN du site
+external_fqdn: "{{ openstack.metadata.external_fqdn }}"
+# Type de serveur Web (bootstrap|wordpress)
+www_type: "{{ openstack.metadata.www_type }}"

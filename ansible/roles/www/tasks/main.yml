@@ -1,117 +1,28 @@
 ---
-# tasks file for roles/www
-
-# Bootstrap
-
-- name: Bootstrap - Installation des paquets
+- name: Installation des paquets
   ansible.builtin.apt:
-    name: "{{ item }}"
+    name: "{{ packages[www_type] | default([]) }}"
     update_cache: yes
     cache_valid_time: 3600
-  loop: "{{ www_bootstrap_packages }}"
-  when: www_type == 'bootstrap'
 
-- name: Bootstrap - Création page Web pour le site
-  ansible.builtin.template:
-    src: var_www_html_index.html__bootstrap__.j2
-    dest: /var/www/html/index.html
-  when: www_type == 'bootstrap'
+- include_tasks: "{{ www_type }}.yml"
 
-# Wordpress
-
-- name: Wordpress - Installation des paquets
-  ansible.builtin.apt:
-    name: "{{ item }}"
-    update_cache: yes
-    cache_valid_time: 3600
-  loop: "{{ www_wordpress_packages }}"
-  when: www_type == 'wordpress'
-
-- name: Wordpress - Apache2 - Activation des modules
+- name: Apache2 - Activation des modules
   community.general.apache2_module:
     state: present
     name: "{{ item }}"
-  loop: "{{ www_wordpress_module }}"
-  when: www_type == 'wordpress'
+  loop: "{{ apache2_modules_to_enable[www_type] | default([]) }}"
   register: restart_apache2
 
-- name: Wordpress - Apache2 - Activation des confs
+- name: Apache2 - Activation des confs
   ansible.builtin.file:
     src: "/etc/apache2/conf-available/{{ item }}.conf"
     dest: "/etc/apache2/conf-enabled/{{ item }}.conf"
     state: link
-  loop: "{{ www_wordpress_conf }}"
-  when: www_type == 'wordpress'
+  loop: "{{ apache2_confs_to_enable[www_type] | default([]) }}"
   register: reload_apache2
 
-- name: Wordpress - Besoin de réinstaler ?
-  ansible.builtin.stat:
-    path: /etc/ansible-do-not-install-wordpress
-  when: www_type == 'wordpress'
-  register: do_not_install_wp
-
-#- name: Wordpress - Téléchargement de la dernière version
-#  ansible.builtin.get_url:
-#    url: "{{www_wordpress_tar_url }}"
-#    dest: /tmp/wordpress.tar.gz
-#  when: www_type == 'wordpress'
-
-- name: Wordpress - Décompression de l'archive
-  ansible.builtin.unarchive:
-    src: "{{ www_wordpress_tar_url }}"
-    dest: /var/www/
-    remote_src: yes
-  when: www_type == 'wordpress' and not do_not_install_wp.stat.exists
-
-- name: Wordpress - Création du fichier de lock de l'install
-  ansible.builtin.file:
-    path: /etc/ansible-do-not-install-wordpress
-    state: touch
-  when: www_type == 'wordpress' and not do_not_install_wp.stat.exists
-
-- name: Wordpress - Copie du fichier de configuration
-  ansible.builtin.template:
-    src: var_www_wordpress_wp-config.php__wordpress__.j2
-    dest: /var/www/wordpress/wp-config.php
-  loop: "{{ groups['www'] }}"
-  when: www_type == 'wordpress' and not do_not_install_wp.stat.exists
-
-#- name: Wordpress - Gestion des droits des répertoires
-#  ansible.builtin.file:
-#    path: /var/www/wordpress
-#    state: directory
-#    recurse: yes
-#    owner: www-data
-#    group: www-data
-#    mode: 755
-#  when: www_type == 'wordpress'
-
-#- name: Wordpress - Gestion des droits des fichiers et répertoires (dir=755, files=644)
-#  ansible.builtin.file:
-#    path: /var/www/wordpress
-#    #state: file
-#    #state: directory
-#    recurse: yes
-#    #owner: www-data
-#    #group: www-data
-#    mode: u=rwX,g=rX,o=rX 
-#  when: www_type == 'wordpress'
-
-- name: droits rep
-  command: find /var/www/wordpress -type d -exec chmod 0755 {} \;
-  when: www_type == 'wordpress'
-
-- name: droits fic
-  command: find /var/www/wordpress -type f -exec chmod 0644 {} \;
-  when: www_type == 'wordpress'
-
-- name: owner
-  command: find /var/www/wordpress -type f -exec chown www-data:www-data {} \;
-  when: www_type == 'wordpress'
-
-# Général
-
-- name: Apache2 - Rechargement de la conf
+- name: Apache2 - Rechargement du service
   ansible.builtin.systemd:
     name: apache2
     state: reloaded

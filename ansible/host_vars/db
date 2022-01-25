@@ -1,3 +1,0 @@
----
-
-bind_address: "{{ openstack['addresses']['private-net-BE-DB'][0]['addr'] }}"

@@ -1,0 +1,42 @@
+---
+- name: Vérification de l'existence du fichier "/etc/ansible-do-not-install-wordpress" - Besoin de réinstaller ?
+  ansible.builtin.stat:
+    path: /etc/ansible-do-not-install-wordpress
+  register: do_not_install_wp
+
+- name: Décompression de l'archive
+  ansible.builtin.unarchive:
+    src: "{{ www_wordpress_tar_url }}"
+    dest: /var/www/
+    remote_src: yes
+    owner: www-data
+    group: www-data
+  when: not do_not_install_wp.stat.exists
+
+- name: Création du fichier "/etc/ansible-do-not-install-wordpress" - Blocage de l'installation
+  ansible.builtin.copy:
+    content: |
+      {{ ansible_managed }}
+      Ne pas supprimer ce fichier
+      Permet de ne pas écraser le contenu de /var/www/wordpress
+    dest: /etc/ansible-do-not-install-wordpress
+
+- name: Copie du fichier de configuration de Wordpress
+  ansible.builtin.template:
+    src: var_www_wordpress_wp-config.php__wordpress__.j2
+    dest: /var/www/wordpress/wp-config.php
+    owner: www-data
+    group: www-data
+  when: not do_not_install_wp.stat.exists
+
+#- name: droits rep
+#  command: find /var/www/wordpress -type d -exec chmod 0755 {} \;
+#  when: www_type == 'wordpress'
+#
+#- name: droits fic
+#  command: find /var/www/wordpress -type f -exec chmod 0644 {} \;
+#  when: www_type == 'wordpress'
+#
+#- name: owner
+#  command: find /var/www/wordpress -type f -exec chown www-data:www-data {} \;
+#  when: www_type == 'wordpress'

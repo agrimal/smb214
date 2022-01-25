@@ -1,40 +1,37 @@
 ---
-# tasks file for roles/db
-
 - name: Installation de MariaDB
   ansible.builtin.apt:
-    name: "{{ item }}"
-    update_cache: yes
-    cache_valid_time: 3600
-  loop:
+    name:
     - mariadb-server
     - python3-mysqldb
+    update_cache: yes
+    cache_valid_time: 3600
 
 - name: Configuration MariaDB - Écouter sur l'interface de Backend DB
   ansible.builtin.lineinfile:
     path: /etc/mysql/mariadb.conf.d/50-server.cnf
-    regexp: '^bind-address.*'
+    regexp: '^bind-address ='
     line: 'bind-address = {{ bind_address }}'
-  register: reload_mariadb
+  register: restart_mariadb
 
 - name: Création des bases MariaDB
   community.mysql.mysql_db:
-    name: "{{ hostvars[item].www_wordpress_db_name }}"
+    name: "{{ item }}"
     state: present
-  loop: "{{ groups['www'] }}"
+  loop: "{{ groups['www_servers'] }}"
   when: hostvars[item].www_type == 'wordpress'
 
 - name: Création des l'utilisateurs MariaDB
   community.mysql.mysql_user:
-    name: "{{ hostvars[item].www_wordpress_db_user }}"
-    password: "{{ hostvars[item].www_wordpress_db_password }}"
+    name: "{{ hostvars[item].wordpress_db_user }}"
+    password: "{{ hostvars[item].wordpress_db_password }}"
     host: "{{ hostvars[item].be_address_db }}"
-    priv: 'www-01.*:ALL,GRANT'
-  loop: "{{ groups['www'] }}"
+    priv: '{{ hostvars[item].wordpress_db_name }}.*:ALL,GRANT'
+  loop: "{{ groups['www_servers'] }}"
   when: hostvars[item].www_type == 'wordpress'
 
-- name: Rechargement de MariaDB
+- name: Redémarrage de MariaDB
   ansible.builtin.systemd:
     name: mariadb
     state: restarted
-  when: reload_mariadb.changed
+  when: restart_mariadb.changed
