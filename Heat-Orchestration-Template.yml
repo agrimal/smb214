@@ -209,7 +209,7 @@ resources:
       name: rvprx
       metadata:
         groups: rvprx_servers
-        self_ssh_ip: { get_attr: [rvprx-port-EXT, fixed_ips, 0] }
+        self_ssh_ip: { get_attr: [rvprx-port-EXT, fixed_ips, 0, ip_address] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
@@ -254,8 +254,8 @@ resources:
     properties:
       name: db
       metadata:
-        groups: backend,db
-        self_ssh_ip: { get_attr: [db-port-DEFAULT, fixed_ips, 0] }
+        groups: db_servers
+        self_ssh_ip: { get_attr: [db-port-DEFAULT, fixed_ips, 0, ip_address] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
@@ -314,7 +314,7 @@ resources:
       name: www-01
       metadata:
         groups: www_servers
-        self_ssh_ip: { get_attr: [www-01-port-DEFAULT, fixed_ips, 0] }
+        self_ssh_ip: { get_attr: [www-01-port-DEFAULT, fixed_ips, 0, ip_address] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
         external_fqdn: w1.smb214.gg42.eu
@@ -357,7 +357,7 @@ resources:
       name: www-02
       metadata:
         groups: www_servers
-        self_ssh_ip: { get_attr: [www-02-port-DEFAULT, fixed_ips, 0] }
+        self_ssh_ip: { get_attr: [www-02-port-DEFAULT, fixed_ips, 0, ip_address] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
         external_fqdn: w2.smb214.gg42.eu
