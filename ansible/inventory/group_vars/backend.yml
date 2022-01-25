@@ -1,2 +1,0 @@
-# Pour se connecter aux serveurs de Backend, il faut passer par le Bastion SSH
-ansible_ssh_common_args:  '-o "ProxyCommand ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /srv/git/SMB214/bob-id_ed25519 -W %h:%p {{ ansible_user }}@{{ openstack.metadata.bastion_ip }}"'
