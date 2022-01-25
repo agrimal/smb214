@@ -1,7 +1,0 @@
----
-
-# Clés ssh qui seront déposés sur les serveurs
-ssh_pub_keys: |
-  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHfqCJcunuI5snatrgwBQtEuk0HEkHio2aGXgfWDL/8k alban-vm-d11-fixe-2021-01-08
-  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILN1RSx8D9V0oFOZlaREXo/LxArp7vU88HkGKDIHFuv3 Aurélien
-

@@ -1,0 +1,25 @@
+---
+ansible_python_interpreter: /usr/bin/python3
+
+nova_cpu_allocation_ratio: 8.0
+
+debug: false
+
+install_method: source
+
+dhcp_domain: openstacklocal
+
+keystone_external_ssl: true
+
+openstack_service_publicuri_proto: https
+openstack_service_adminuri_proto : https
+openstack_service_internaluri_proto: https
+
+neutron_nova_metadata_protocol: http
+
+haproxy_use_keepalived: False
+
+galera_innodb_buffer_pool_size: "2048M"
+galera_max_connections: 1000
+
+nova_conductor_workers: 4

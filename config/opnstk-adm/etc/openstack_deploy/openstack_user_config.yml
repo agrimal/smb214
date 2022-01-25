@@ -1,0 +1,102 @@
+---
+cidr_networks:
+  container: 10.123.123.0/24
+  storage: 10.255.0.0/24
+  tunnel: 10.255.1.0/24
+
+used_ips:
+  - "10.123.123.1,10.123.123.20"
+  - "10.255.0.1,10.255.0.20"
+  - "10.255.1.1,10.255.1.20"
+
+global_overrides:
+  internal_lb_vip_address: 10.123.123.11
+  external_lb_vip_address: 10.123.123.11
+  management_bridge: "br-mgmt"
+  provider_networks:
+    - network:
+        container_bridge: "br-mgmt"
+        container_type: "veth"
+        container_interface: "mgmt"
+        ip_from_q: "container"
+        type: "raw"
+        group_binds:
+          - all_containers
+          - hosts
+        is_container_address: true
+    - network:
+        container_bridge: "br-vxlan"
+        container_type: "veth"
+        container_interface: "vxlan"
+        ip_from_q: "tunnel"
+        type: "vxlan"
+        range: "1:1000"
+        net_name: "vxlan"
+        group_binds:
+          - neutron_linuxbridge_agent
+    - network:
+        container_bridge: "br-external"
+        container_type: "veth"
+        container_interface: "external"
+        host_bind_override: "eth-ext"
+        type: "flat"
+        net_name: "network-external"
+        group_binds:
+          - neutron_linuxbridge_agent
+    - network:
+        container_bridge: "br-storage"
+        container_type: "veth"
+        container_interface: "storage"
+        ip_from_q: "storage"
+        type: "raw"
+        group_binds:
+          - glance_api
+          - cinder_api
+          - cinder_volume
+          - nova_compute
+
+shared-infra_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+repo-infra_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+os-infra_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+identity_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+network_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+compute_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+storage-infra_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+
+storage_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11
+    container_vars:
+      cinder_storage_availability_zone: nova
+      cinder_default_availability_zone: nova
+      cinder_backends:
+        lvm:
+          volume_backend_name: LVM_iSCSI
+          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+          volume_group: cinder-volumes
+          iscsi_ip_address: "{{ cinder_storage_address }}"
+        limit_container_types: cinder_volume
+
+haproxy_hosts:
+  opnstk-node01:
+    ip: 10.123.123.11

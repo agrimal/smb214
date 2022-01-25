@@ -1,8 +1,11 @@
 heat_template_version: 2021-04-16
 
-description: Stack complète Bastion + RVPRX + Serveurs Web + BDD pour le Projet SMB214
+description: >
+    Stack complète Bastion + RVPRX + Serveurs Web + BDD pour le Projet SMB214
+    Par Aurélien Grimal et Alban Vidal
 
 parameters:
+
   key-name:
     type: string
     label: SSH key pair
@@ -16,30 +19,35 @@ parameters:
     default: debian11
     constraints:
       - custom_constraint: glance.image
+
   flavor-bastion:
     type: string
     description: Instance Bastion flavor
     default: z1.nano
     constraints:
       - custom_constraint: nova.flavor
+
   flavor-rvprx:
     type: string
     description: Instance RVPRX flavor
     default: z1.micro
     constraints:
       - custom_constraint: nova.flavor
+
   flavor-db:
     type: string
     description: Instance DB flavor
     default: z1.small
     constraints:
       - custom_constraint: nova.flavor
+
   flavor-www:
     type: string
     description: Instance WWW flavor
     default: z1.medium
     constraints:
       - custom_constraint: nova.flavor
+
   public-net:
     type: string
     default: net-ext
@@ -86,8 +94,6 @@ resources:
       cidr: 192.168.113.0/24
       gateway_ip: null
 
-  # ROUTEUR
-
   router:
     type: OS::Neutron::Router
     properties:
@@ -99,8 +105,6 @@ resources:
     properties:
       router_id: { get_resource: router }
       subnet_id: { get_resource: private-subnet-FE-DEFAULT }
-
-  # BACKEND
 
   sec-group-backend:
     type: OS::Neutron::SecurityGroup
@@ -116,8 +120,6 @@ resources:
         - remote_group_id: { get_resource: sec-group-bastion }
           remote_mode: remote_group_id
           protocol: icmp
-
-  # BASTION
 
   sec-group-bastion:
     type: OS::Neutron::SecurityGroup
@@ -149,15 +151,13 @@ resources:
     properties:
       name: bastion
       metadata:
-        groups: bastion
-        ssh_access: fe
+        groups: bastion_servers
+        self_ssh_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-bastion }
       networks:
         - port: { get_resource: bastion-port }
-
-  # RVPRX
 
   sec-group-rvprx-EXT:
     type: OS::Neutron::SecurityGroup
@@ -208,8 +208,8 @@ resources:
     properties:
       name: rvprx
       metadata:
-        groups: backend,rvprx
-        ssh_access: be
+        groups: rvprx_servers
+        self_ssh_ip: { get_attr: [rvprx-port-EXT, fixed_ips, 0] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
@@ -255,7 +255,7 @@ resources:
       name: db
       metadata:
         groups: backend,db
-        ssh_access: be
+        self_ssh_ip: { get_attr: [db-port-DEFAULT, fixed_ips, 0] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
@@ -313,8 +313,8 @@ resources:
     properties:
       name: www-01
       metadata:
-        groups: backend,www
-        ssh_access: be
+        groups: www_servers
+        self_ssh_ip: { get_attr: [www-01-port-DEFAULT, fixed_ips, 0] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
         external_fqdn: w1.smb214.gg42.eu
@@ -356,8 +356,8 @@ resources:
     properties:
       name: www-02
       metadata:
-        groups: backend,www
-        ssh_access: be
+        groups: www_servers
+        self_ssh_ip: { get_attr: [www-02-port-DEFAULT, fixed_ips, 0] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
         external_fqdn: w2.smb214.gg42.eu
@@ -371,9 +371,11 @@ resources:
         - port: { get_resource: www-02-port-DB }
 
 outputs:
+
   bastion-ip-ext:
     description: Adresse IP publique du Bastion
     value: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
+
   rvprx-ip-ext:
     description: Adresse IP publique du Reverse-Proxy
     value: { get_attr: [rvprx-floating-ip-WWW, floating_ip_address] }

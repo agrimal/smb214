@@ -29,7 +29,7 @@ define( 'DB_USER', '{{ hostvars[item].www_wordpress_db_user }}' );
 define( 'DB_PASSWORD', '{{ hostvars[item].www_wordpress_db_password }}' );
 
 /** MySQL hostname */
-define( 'DB_HOST', '{{ hostvars[item].be_address_db }}' );
+define( 'DB_HOST', '{{ hostvars[item].db_ip }}' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );

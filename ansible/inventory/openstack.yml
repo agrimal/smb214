@@ -1,0 +1,12 @@
+plugin: openstack.cloud.openstack
+expand_hostvars: yes
+fail_on_errors: yes
+cache: yes
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: /tmp/openstack_inventory
+cache_prefix: openstack
+cache_timeout: 300
+clouds_yaml_path: [clouds.yaml]
+compose:
+  ansible_host: openstack.metadata.self_ssh_ip
+  ansible_ssh_host: openstack.metadata.self_ssh_ip

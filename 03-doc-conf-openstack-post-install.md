@@ -1,10 +1,44 @@
 Configuration d'Openstack après installation
 ==============================================
 
+## Installation du CLI OpenStack sur opnstk-adm
+
+Les commandes doivent être exécutées sur `opnstk-adm`
+
+- Clône de ce dépôt
+```bash
+cd
+git clone https://github.com/agrimal/smb214.git
+```
+
+- Création du virtualenv
+```bash
+mkdir /srv/virtualenvs
+virtualenv -p python3 /srv/virtualenvs/opnstk-cli
+source /srv/virtualenvs/opnstk-cli/bin/activate
+pip install python-openstackclient
+```
+
+- Identifier le nom du conteneur utility
+```bash
+utility_container=$(awk '/utility_container/ {print $4}' /etc/hosts)
+echo "Le conteneur utility est $utility_container"
+```
+
+- Récupération du fichier openrc du compte admin
+```bash
+cd ~/smb214
+scp utility_container:/root/openrc admin.openstack-rc.sh
+source admin.openstack-rc.sh
+```
+
+Le mot de passe du compte `admin` peut se récupérer de plusieurs façons :
+- `awk '/^keystone_auth_admin_password/ {print $2}' /etc/openstack_deploy/user_secrets.yml`
+- `echo $OS_PASSWORD` après avoir sourcé le fichier `admin.openstack-rc.sh`
+
 ## Actions administrateur (compte admin)
 
 Ces actions sont à effectuer avec le compte admin.  
-Le mot de passe du compte `admin` se récupère avec la commande : `awk '/^keystone_auth_admin_password/ {print $2}' /etc/openstack_deploy/user_secrets.yml` sur la machine de déploiement `opnstk-adm`.
 
 #### Création d'un projet
 
@@ -109,9 +143,10 @@ Ces actions sont à effectuer avec le compte bob, créé précédemment.
 
 #### Récupération du fichier openrc
 
-Se connecter à l'interface web d'Openstack avec le compte bob.  
-En haut à droite, cliquer sur `bob` puis sur `Fichier OpenStack RC`.  
-L'enregistrement à la racine du dépôt avec le nom `bob.openstack-rc.sh`.  
+Étapes :
+- se connecter à l'interface web d'Openstack avec le compte bob.  
+- en haut à droite, cliquer sur `bob` puis sur `Fichier OpenStack RC`.  
+- l'enregistrer dans le répertoire `~/smb214` sous le nom `bob.openstack-rc.sh`.  
 
 Il est également possible de créer le fichier openrc en adaptant cet exemple avec les bonnes valeurs :
 ```bash
@@ -144,6 +179,7 @@ fi
 Il est important d'utiliser le fichier openrc de bob et non celui du compte admin.
 
 ```bash
+cd ~/smb214
 source bob.openstack-rc.sh
 ```
 
@@ -191,21 +227,4 @@ openstack security group rule create --proto icmp --remote-group rvprx www
 # règles pour permettre aux serveurs web d'accéder à la base de données en mysql
 openstack security group create db
 openstack security group rule create --proto tcp --remote-group www --dst-port 3306 db
-```
-
-## Création de la stack via un template Heat (HOT)
-
-```
-openstack stack create \
-  -t https://g.gg42.eu/OpenStack/SMB214/raw/branch/master/heat/SMB214-HOT-Template.yaml \
-  --parameter key-name=ma_clef \
-  --parameter image=debian11 \
-  --parameter flavor-bastion=z1.micro \
-  --parameter flavor-rvprx=z1.small \
-  --parameter flavor-db=z1.small \
-  --parameter flavor-www=z1.medium \
-  --parameter public-net=net-ext \
-  SMB214
-
-openstack stack list
 ```

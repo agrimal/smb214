@@ -86,15 +86,27 @@
 #    mode: 755
 #  when: www_type == 'wordpress'
 
-- name: Wordpress - Gestion des droits des fichiers et répertoires (dir=755, files=644)
-  ansible.builtin.file:
-    path: /var/www/wordpress
-    #state: file
-    state: directory
-    recurse: yes
-    #owner: www-data
-    #group: www-data
-    mode: u=rwX,g=rX,o=rX 
+#- name: Wordpress - Gestion des droits des fichiers et répertoires (dir=755, files=644)
+#  ansible.builtin.file:
+#    path: /var/www/wordpress
+#    #state: file
+#    #state: directory
+#    recurse: yes
+#    #owner: www-data
+#    #group: www-data
+#    mode: u=rwX,g=rX,o=rX 
+#  when: www_type == 'wordpress'
+
+- name: droits rep
+  command: find /var/www/wordpress -type d -exec chmod 0755 {} \;
+  when: www_type == 'wordpress'
+
+- name: droits fic
+  command: find /var/www/wordpress -type f -exec chmod 0644 {} \;
+  when: www_type == 'wordpress'
+
+- name: owner
+  command: find /var/www/wordpress -type f -exec chown www-data:www-data {} \;
   when: www_type == 'wordpress'
 
 # Général
