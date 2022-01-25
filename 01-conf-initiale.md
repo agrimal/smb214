@@ -24,7 +24,7 @@ Configuration réseau :
 - opnstk-node01 : voir fichier [/etc/network/interfaces](./config/opnstk-node01/etc/network/interfaces)
 - voir [schéma réseau](./images/schema-reseau-serveurs.svg)
 
-## Configuration du serveur de déploiement
+## Configuration du serveur de déploiement (opnstk-adm)
 
 - Installation des paquets
 ```bash
@@ -43,7 +43,7 @@ echo "10.123.123.11 opnstk-node01" | tee -a /etc/hosts
 
 - Documentation de référence : [Prepare the deployment host](https://docs.openstack.org/project-deploy-guide/openstack-ansible/xena/deploymenthost.html)
 
-## Configuration du serveur d'hébergement
+## Configuration du serveur d'hébergement (opnstk-node01)
 
 - Installation des paquets
 ```bash
