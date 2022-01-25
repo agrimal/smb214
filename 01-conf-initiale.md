@@ -7,7 +7,7 @@ Serveur de déploiement :
 - Nom : `opnstk-adm`
 - CPU : 4
 - Mémoire : 8 Go
-- OS : Debian 11 Bullseye
+- OS : Debian 10 Buster
 
 Serveur d'hébergement :
 - Nom : `opnstk-node01`
