@@ -17,6 +17,6 @@ be_address_www: "{{ openstack['addresses']['private-net-BE-WWW'][0]['addr'] }}"
 # Adresse IP de backend web - vers DB
 be_address_db: "{{ openstack['addresses']['private-net-BE-DB'][0]['addr'] }}"
 
-
+# Configuration de wordpress
 wp_home: "https://{{ openstack.metadata.external_fqdn }}"
 wp_siteurl: "https://{{ openstack.metadata.external_fqdn }}"
