@@ -75,10 +75,10 @@
             </tr>
           </thead>
           <tbody>
-{% for key in openstack.metadata %}
+{% for key, value in openstack.metadata.items() %}
             <tr>
               <td>{{ key }}</td>
-              <td>{{ openstack.metadata[key] }}</td>
+              <td>{{ value }}</td>
             </tr>
 {% endfor %}
           </tbody>

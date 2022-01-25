@@ -1,6 +1,4 @@
 ---
-# tasks file for roles/rvprx
-
 - name: Installation de Nginx
   ansible.builtin.apt:
     name: nginx
@@ -11,7 +9,7 @@
   ansible.builtin.template:
     src: etc_nginx_sites-available__vhost__.j2
     dest: "/etc/nginx/sites-available/{{ hostvars[item].external_fqdn }}"
-  loop: "{{ groups['www'] }}"
+  loop: "{{ groups['www_servers'] }}"
   register: reload_nginx
 
 - name: Activation des vhosts
@@ -19,7 +17,7 @@
     src: "/etc/nginx/sites-available/{{ hostvars[item].external_fqdn }}"
     dest: "/etc/nginx/sites-enabled/{{ hostvars[item].external_fqdn }}"
     state: link
-  loop: "{{ groups['www'] }}"
+  loop: "{{ groups['www_servers'] }}"
   register: reload_nginx
 
 - name: Rechargement de Nginx

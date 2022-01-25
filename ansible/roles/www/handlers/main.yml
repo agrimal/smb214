@@ -1,2 +1,10 @@
 ---
-# handlers file for roles/www
+- name: Rechargement de Apache2
+  ansible.builtin.systemd:
+    name: apache2
+    state: reloaded
+
+- name: Redémarrage de Apache2
+  ansible.builtin.systemd:
+    name: apache2
+    state: restarted

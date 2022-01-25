@@ -348,7 +348,7 @@ resources:
     properties:
       network_id: { get_resource: private-net-BE-DB }
       security_groups:
-        - { get_resource: sec-group-www-BE-WWW }
+        - { get_resource: sec-group-www-BE-DB }
       fixed_ips:
         - subnet_id: { get_resource: private-subnet-BE-DB }
   www-02:

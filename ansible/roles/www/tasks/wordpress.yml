@@ -1,4 +1,11 @@
 ---
+- name: Modification du vhost Apache2
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/sites-available/000-default.conf
+    regexp: 'DocumentRoot '
+    line: 'DocumentRoot /var/www/wordpress'
+  notify: Rechargement de Apache2
+
 - name: Vérification de l'existence du fichier "/etc/ansible-do-not-install-wordpress" - Besoin de réinstaller ?
   ansible.builtin.stat:
     path: /etc/ansible-do-not-install-wordpress
@@ -6,7 +13,7 @@
 
 - name: Décompression de l'archive
   ansible.builtin.unarchive:
-    src: "{{ www_wordpress_tar_url }}"
+    src: "{{ wordpress_tar_url }}"
     dest: /var/www/
     remote_src: yes
     owner: www-data
@@ -16,7 +23,6 @@
 - name: Création du fichier "/etc/ansible-do-not-install-wordpress" - Blocage de l'installation
   ansible.builtin.copy:
     content: |
-      {{ ansible_managed }}
       Ne pas supprimer ce fichier
       Permet de ne pas écraser le contenu de /var/www/wordpress
     dest: /etc/ansible-do-not-install-wordpress

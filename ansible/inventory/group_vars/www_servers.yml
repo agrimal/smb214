@@ -1,0 +1,22 @@
+# Nom de la base MariaDB
+wordpress_db_name: wordpress
+# Utilisateur pour se connecter à la BDD
+wordpress_db_user: wordpress
+# MDP pour se connecter à la BDD
+wordpress_db_password: wordpress
+
+# IP pour se connecter à la BDD
+db_ip: "{{ openstack.metadata.db_ip }}"
+# FQDN du site
+external_fqdn: "{{ openstack.metadata.external_fqdn }}"
+# Type de serveur Web (bootstrap|wordpress)
+www_type: "{{ openstack.metadata.www_type }}"
+
+# Adresse IP de backend web - vers RVPRX
+be_address_www: "{{ openstack['addresses']['private-net-BE-WWW'][0]['addr'] }}"
+# Adresse IP de backend web - vers DB
+be_address_db: "{{ openstack['addresses']['private-net-BE-DB'][0]['addr'] }}"
+
+
+wp_home: "https://{{ openstack.metadata.external_fqdn }}"
+wp_siteurl: "https://{{ openstack.metadata.external_fqdn }}"

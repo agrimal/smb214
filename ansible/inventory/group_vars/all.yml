@@ -1,0 +1,2 @@
+ansible_ssh_common_args: "-o ControlMaster=auto -o ControlPath=/tmp/%r@%h-%p -o ControlPersist=60"
+ansible_ssh_extra_args: "{{ openstack.metadata.bastion_ip is defined | ternary('-o \"ProxyCommand ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ../bob-id_ed25519 -W %h:%p ' + ansible_user + '@' + (openstack.metadata.bastion_ip | default(\"\")) + '\"', '') }}"

@@ -12,7 +12,7 @@
     state: present
     name: "{{ item }}"
   loop: "{{ apache2_modules_to_enable[www_type] | default([]) }}"
-  register: restart_apache2
+  notify: Redémarrage de Apache2
 
 - name: Apache2 - Activation des confs
   ansible.builtin.file:
@@ -20,17 +20,4 @@
     dest: "/etc/apache2/conf-enabled/{{ item }}.conf"
     state: link
   loop: "{{ apache2_confs_to_enable[www_type] | default([]) }}"
-  register: reload_apache2
-
-- name: Apache2 - Rechargement du service
-  ansible.builtin.systemd:
-    name: apache2
-    state: reloaded
-  when: reload_apache2.changed and restart_apache2 is not changed
-
-- name: Apache2 - Redémarrage du service
-  ansible.builtin.systemd:
-    name: apache2
-    state: restarted
-  when: restart_apache2.changed
-
+  notify: Rechargement de Apache2
