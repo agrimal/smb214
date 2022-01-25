@@ -1,15 +1,85 @@
 ---
 # tasks file for roles/www
 
-- name: Installation de Apache2
+# Bootstrap
+
+- name: Bootstrap - Installation des paquets
   ansible.builtin.apt:
-    name: apache2
+    name: "{{ item }}"
     update_cache: yes
     cache_valid_time: 3600
+  loop: "{{ www_bootstrap_packages }}"
+  when: www_type == 'bootstrap'
 
-- name: Création page Web
+- name: Bootstrap - Création page Web pour le site
   ansible.builtin.template:
-    src: var_www_html_index.html
+    src: var_www_html_index.html__bootstrap__.j2
     dest: /var/www/html/index.html
-  #with_list: "{{ groups['www'] }}"
-  #with_items: [ "{{ groups['www'] }}" ]
+  when: www_type == 'bootstrap'
+
+# Wordpress
+
+- name: Wordpress - Installation des paquets
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    update_cache: yes
+    cache_valid_time: 3600
+  loop: "{{ www_wordpress_packages }}"
+  when: www_type == 'wordpress'
+
+- name: Wordpress - Apache2 - Activation des modules
+  community.general.apache2_module:
+    state: present
+    name: "{{ item }}"
+  loop: "{{ www_wordpress_module }}"
+  when: www_type == 'wordpress'
+  register: restart_apache2
+
+- name: Wordpress - Apache2 - Activation des confs
+  ansible.builtin.file:
+    src: "/etc/apache2/conf-available/{{ item }}.conf"
+    dest: "/etc/apache2/conf-enabled/{{ item }}.conf"
+    state: link
+  loop: "{{ www_wordpress_conf }}"
+  when: www_type == 'wordpress'
+  register: reload_apache2
+
+- name: Wordpress - Besoin de réinstaler ?
+  ansible.builtin.stat:
+    path: /etc/ansible-do-not-install-wordpress
+  when: www_type == 'wordpress'
+  register: do_not_install_wp
+
+#- name: Wordpress - Téléchargement de la dernière version
+#  ansible.builtin.get_url:
+#    url: "{{www_wordpress_tar_url }}"
+#    dest: /tmp/wordpress.tar.gz
+#  when: www_type == 'wordpress'
+
+- name: Wordpress - Décompression de l'archive
+  ansible.builtin.unarchive:
+    src: "{{ www_wordpress_tar_url }}"
+    dest: /var/www/
+    remote_src: yes
+  when: www_type == 'wordpress' and not do_not_install_wp.stat.exists
+
+- name: Wordpress - Création du fchier de lock de l'install
+  ansible.builtin.file:
+    path: /etc/ansible-do-not-install-wordpress
+    state: touch
+  when: www_type == 'wordpress' and not do_not_install_wp.stat.exists
+
+# Général
+
+- name: Apache2 - Rechargement de la conf
+  ansible.builtin.systemd:
+    name: apache2
+    state: reloaded
+  when: reload_apache2.changed and restart_apache2 is not changed
+
+- name: Apache2 - Redémarrage du service
+  ansible.builtin.systemd:
+    name: apache2
+    state: restarted
+  when: restart_apache2.changed
+

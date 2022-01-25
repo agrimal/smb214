@@ -9,10 +9,9 @@
 
 - name: Création des vhosts
   ansible.builtin.template:
-    src: etc_nginx_sites-available_vhost.j2
+    src: etc_nginx_sites-available__vhost__.j2
     dest: "/etc/nginx/sites-available/{{ hostvars[item].external_fqdn }}"
-  with_list: "{{ groups['www'] }}"
-  #with_items: [ "{{ groups['www'] }}" ]
+  loop: "{{ groups['www'] }}"
   register: reload_nginx
 
 - name: Activation des vhosts
@@ -20,7 +19,7 @@
     src: "/etc/nginx/sites-available/{{ hostvars[item].external_fqdn }}"
     dest: "/etc/nginx/sites-enabled/{{ hostvars[item].external_fqdn }}"
     state: link
-  with_list: "{{ groups['www'] }}"
+  loop: "{{ groups['www'] }}"
   register: reload_nginx
 
 - name: Rechargement de Nginx
