@@ -194,6 +194,9 @@ ssh-keygen -t ed25519 -f bob-id_ed25519
 
 # import dans openstack de la clef publique de bob
 openstack keypair create --public-key bob-id_ed25519.pub --type ssh clef_ssh_de_bob
+
+# liste des clefs
+openstack keypair list
 ```
 
 #### Création des règles de sécurité
