@@ -10,7 +10,6 @@ parameters:
     type: string
     label: SSH key pair
     description: SSH key to be used
-    default: bob_ma_clef
     constraints:
       - custom_constraint: nova.keypair
   image:
@@ -30,21 +29,21 @@ parameters:
   flavor-rvprx:
     type: string
     description: Instance RVPRX flavor
-    default: z1.micro
+    default: z1.nano
     constraints:
       - custom_constraint: nova.flavor
 
   flavor-db:
     type: string
     description: Instance DB flavor
-    default: z1.small
+    default: z1.nano
     constraints:
       - custom_constraint: nova.flavor
 
   flavor-www:
     type: string
     description: Instance WWW flavor
-    default: z1.medium
+    default: z1.nano
     constraints:
       - custom_constraint: nova.flavor
 
@@ -257,6 +256,7 @@ resources:
         groups: db_servers
         self_ssh_ip: { get_attr: [db-port-DEFAULT, fixed_ips, 0, ip_address] }
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
+        sql_ip: { get_attr: [db-port-DB, fixed_ips, 0, ip_address] }
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-db }
