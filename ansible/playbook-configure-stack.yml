@@ -1,9 +1,4 @@
 ---
-- name: Configuration générale
-  hosts: all
-  roles:
-    - all
-
 - name: Configuration du RVPRX
   hosts: rvprx_servers
   roles:
