@@ -28,7 +28,7 @@ echo "Le conteneur utility est $utility_container"
 - Récupération du fichier openrc du compte admin
 ```bash
 cd ~/smb214
-scp utility_container:/root/openrc admin.openstack-rc.sh
+scp $utility_container:/root/openrc admin.openstack-rc.sh
 source admin.openstack-rc.sh
 ```
 
