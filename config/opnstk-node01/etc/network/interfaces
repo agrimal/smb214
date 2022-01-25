@@ -1,0 +1,41 @@
+# /etc/network/interfaces
+
+auto lo
+iface lo inet loopback
+
+auto eth0
+allow-hotplug eth0
+
+auto eth1
+allow-hotplug eth1
+
+auto br-mgmt
+iface br-mgmt inet static
+    bridge_ports eth0
+    bridge_fd 0
+    bridge_stp off
+    address 10.123.123.11/24
+    gateway 10.123.123.1
+
+auto br-external
+iface br-external inet manual
+    pre-up ip link add br-ext-veth type veth peer name eth-ext || true
+    pre-up ip link set br-ext-veth up
+    pre-up ip link set eth-ext up
+    bridge_ports eth1 br-ext-veth
+    bridge_fd 0
+    bridge_stp off
+
+auto br-storage
+iface br-storage inet static
+    bridge_ports none
+    bridge_fd 0
+    bridge_stp off
+    address 10.255.0.11/24
+
+auto br-vxlan
+iface br-vxlan inet static
+    bridge_ports none
+    bridge_fd 0
+    bridge_stp off
+    address 10.255.1.11/24

@@ -3,9 +3,12 @@
 
 - name: Installation de MariaDB
   ansible.builtin.apt:
-    name: mariadb-server
+    name: "{{ item }}"
     update_cache: yes
     cache_valid_time: 3600
+  loop:
+    - mariadb-server
+    - python3-mysqldb
 
 - name: Configuration MariaDB - Écouter sur l'interface de Backend DB
   ansible.builtin.lineinfile:
@@ -13,6 +16,22 @@
     regexp: '^bind-address.*'
     line: 'bind-address = {{ bind_address }}'
   register: reload_mariadb
+
+- name: Création des bases MariaDB
+  community.mysql.mysql_db:
+    name: "{{ hostvars[item].www_wordpress_db_name }}"
+    state: present
+  loop: "{{ groups['www'] }}"
+  when: hostvars[item].www_type == 'wordpress'
+
+- name: Création des l'utilisateurs MariaDB
+  community.mysql.mysql_user:
+    name: "{{ hostvars[item].www_wordpress_db_user }}"
+    password: "{{ hostvars[item].www_wordpress_db_password }}"
+    host: "{{ hostvars[item].be_address_db }}"
+    priv: 'www-01.*:ALL,GRANT'
+  loop: "{{ groups['www'] }}"
+  when: hostvars[item].www_type == 'wordpress'
 
 - name: Rechargement de MariaDB
   ansible.builtin.systemd:

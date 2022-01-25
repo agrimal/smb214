@@ -7,7 +7,7 @@ parameters:
     type: string
     label: SSH key pair
     description: SSH key to be used
-    default: ma_clef
+    default: bob_ma_clef
     constraints:
       - custom_constraint: nova.keypair
   image:
@@ -318,6 +318,7 @@ resources:
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
         external_fqdn: w1.smb214.gg42.eu
+        www_type: bootstrap
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }
@@ -360,6 +361,7 @@ resources:
         bastion_ip: { get_attr: [bastion-floating-ip-SSH, floating_ip_address] }
         db_ip: { get_attr: [db, networks, private-net-BE-DB, 0] }
         external_fqdn: w2.smb214.gg42.eu
+        www_type: wordpress
       key_name: { get_param: key-name }
       image: { get_param: image }
       flavor: { get_param: flavor-www }

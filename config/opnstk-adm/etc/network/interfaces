@@ -1,0 +1,10 @@
+# /etc/network/interfaces
+
+auto lo
+iface lo inet loopback
+
+auto eth0
+allow-hotplug eth0
+iface eth0 inet static
+    address 10.123.123.10/24
+    gateway 10.123.123.1

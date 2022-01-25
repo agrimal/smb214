@@ -6,7 +6,7 @@ server {
     access_log /var/log/nginx/{{ hostvars[item].external_fqdn }}_access.log;
     error_log  /var/log/nginx/{{ hostvars[item].external_fqdn }}_error.log;
     location / {
-        proxy_pass http://{{ hostvars[item].be_address }}:80;
+        proxy_pass http://{{ hostvars[item].be_address_www }}:80;
     }
 }
 
