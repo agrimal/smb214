@@ -119,3 +119,5 @@ rvprx                      : ok=4    changed=0    unreachable=0    failed=0    s
 www-01                     : ok=4    changed=0    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
 www-02                     : ok=8    changed=0    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
 ```
+
+- Documentation d'ansible : [https://docs.ansible.com](https://docs.ansible.com/ansible_community.html)
